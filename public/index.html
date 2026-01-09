@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎲 簡易大富翁遊戲</h1>
+        <h1>簡易大富翁遊戲</h1>
         
         <!-- 遊戲設定區 -->
         <div id="setup-panel" class="panel">
@@ -20,20 +20,23 @@
             </div>
         </div>
 
-        <!-- 遊戲控制區 -->
-        <div id="game-panel" class="panel" style="display: none;">
-            <div class="game-info">
-                <h2>目前玩家：<span id="current-player">1</span></h2>
-                <div class="dice-controls">
-                    <button onclick="rollDice()" class="btn btn-primary" id="roll-btn">🎲 擲骰子</button>
-                    <div id="dice-result" class="dice-result"></div>
+        <!-- 遊戲主區域：左右並排 -->
+        <div id="game-main" class="game-main" style="display: none;">
+            <!-- 左側：遊戲控制區 -->
+            <div id="game-panel" class="panel game-control-panel">
+                <div class="game-info">
+                    <h2>目前玩家：<span id="current-player">1</span></h2>
+                    <div class="dice-controls">
+                        <button onclick="rollDice()" class="btn btn-primary" id="roll-btn">🎲 擲骰子</button>
+                        <div id="dice-result" class="dice-result"></div>
+                    </div>
+                    <div id="action-panel" class="action-panel"></div>
                 </div>
-                <div id="action-panel" class="action-panel"></div>
             </div>
-        </div>
 
-        <!-- 棋盤 -->
-        <div id="board" class="board"></div>
+            <!-- 右側：棋盤 -->
+            <div id="board" class="board"></div>
+        </div>
 
         <!-- 遊戲資訊 -->
         <div id="info-panel" class="info-panel"></div>

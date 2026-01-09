@@ -1,5 +1,25 @@
 let gameState = null;
-const BOARD_SIZE = 40;
+const BOARD_SIZE = 16;
+
+// 格子說明（寫死在程式中）
+const cellLabels = {
+    0: 'GO 起點',
+    1: '台北',
+    2: '機會',
+    3: '台中',
+    4: '命運',
+    5: '高雄',
+    6: '社區',
+    7: '花蓮',
+    8: '監獄',
+    9: '宜蘭',
+    10: '寶箱',
+    11: '台南',
+    12: '休息',
+    13: '新竹',
+    14: '彩券',
+    15: '桃園'
+};
 
 // 開始遊戲
 async function startGame() {
@@ -22,7 +42,7 @@ async function startGame() {
         if (data.success) {
             gameState = data;
             document.getElementById('setup-panel').style.display = 'none';
-            document.getElementById('game-panel').style.display = 'block';
+            document.getElementById('game-main').style.display = 'flex';
             
             createBoard();
             updateDisplay();
@@ -38,7 +58,7 @@ function createBoard() {
     const board = document.getElementById('board');
     board.innerHTML = '';
 
-    // 建立40個格子（四邊框）
+    // 建立16個格子（四邊框）
     for (let i = 0; i < BOARD_SIZE; i++) {
         const cell = document.createElement('div');
         cell.className = 'cell';
@@ -60,6 +80,14 @@ function createBoard() {
         cellNumber.textContent = i;
         cell.appendChild(cellNumber);
 
+        // 顯示格子標籤（如果有設定）
+        if (cellLabels[i]) {
+            const cellLabel = document.createElement('div');
+            cellLabel.className = 'cell-label';
+            cellLabel.textContent = cellLabels[i];
+            cell.appendChild(cellLabel);
+        }
+
         const playersContainer = document.createElement('div');
         playersContainer.className = 'players-container';
         playersContainer.id = `players-${i}`;
@@ -75,23 +103,23 @@ function createBoard() {
     board.appendChild(centerArea);
 }
 
-// 取得格子在網格中的位置
+// 取得格子在網格中的位置（16格，每邊4格）
 function getCellPosition(index) {
-    // 下方邊（0-10）：從右下角逆時針到左下角
-    if (index >= 0 && index <= 10) {
-        return { col: 11 - index, row: 11 };
+    // 下方邊（0-4）：從右下角逆時針到左下角
+    if (index >= 0 && index <= 4) {
+        return { col: 5 - index, row: 5 };
     }
-    // 左方邊（11-19）：從下到上
-    else if (index >= 11 && index <= 19) {
-        return { col: 1, row: 11 - (index - 10) };
+    // 左方邊（5-7）：從下到上
+    else if (index >= 5 && index <= 7) {
+        return { col: 1, row: 5 - (index - 4) };
     }
-    // 上方邊（20-30）：從左上角到右上角
-    else if (index >= 20 && index <= 30) {
-        return { col: index - 19, row: 1 };
+    // 上方邊（8-12）：從左上角到右上角
+    else if (index >= 8 && index <= 12) {
+        return { col: index - 7, row: 1 };
     }
-    // 右方邊（31-39）：從上到下
+    // 右方邊（13-15）：從上到下
     else {
-        return { col: 11, row: index - 29 };
+        return { col: 5, row: index - 11 };
     }
 }
 

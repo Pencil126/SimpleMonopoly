@@ -10,9 +10,10 @@ app.use(express.static('public'));
 // 遊戲狀態
 let gameState = {
     players: [],
-    boardSize: 40,
+    boardSize: 16,
     currentPlayerIndex: 0,
-    isGameStarted: false
+    isGameStarted: false,
+    cellLabels: {} // 儲存格子的提示文字
 };
 
 // 初始化遊戲
