@@ -1,5 +1,45 @@
 let gameState = null;
+let sessionId = null;
 const BOARD_SIZE = 16;
+
+// 初始化會話
+async function initSession() {
+    // 每次都建立新會話（不使用 localStorage）
+    try {
+        const response = await fetch('/api/create-session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await response.json();
+        sessionId = data.sessionId;
+        console.log('建立新會話:', sessionId);
+    } catch (error) {
+        console.error('無法建立會話:', error);
+        alert('無法連接到伺服器');
+    }
+}
+
+// 清理會話
+async function cleanupSession() {
+    if (sessionId) {
+        try {
+            await fetch('/api/delete-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId })
+            });
+            console.log('清理會話:', sessionId);
+        } catch (error) {
+            console.error('清理會話失敗:', error);
+        }
+    }
+}
+
+// 頁面載入時初始化會話
+window.addEventListener('DOMContentLoaded', initSession);
+
+// 頁面關閉時清理會話
+window.addEventListener('beforeunload', cleanupSession);
 
 // 格子說明
 const cellLabels = {
@@ -23,6 +63,10 @@ const cellLabels = {
 
 // 開始遊戲
 async function startGame() {
+    if (!sessionId) {
+        await initSession();
+    }
+    
     const playerCount = parseInt(document.getElementById('player-count').value);
     
     if (playerCount < 1 || playerCount > 6) {
@@ -34,7 +78,7 @@ async function startGame() {
         const response = await fetch('/api/init-game', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ playerCount })
+            body: JSON.stringify({ playerCount, sessionId })
         });
 
         const data = await response.json();
@@ -137,7 +181,8 @@ async function rollDice() {
 
         const response = await fetch('/api/roll-dice', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId })
         });
 
         const data = await response.json();
@@ -293,14 +338,12 @@ function createPlayerToken(playerId) {
     token.className = 'player-token';
     token.dataset.playerId = playerId;
     
-    // 獲取玩家資料
-    fetch('/api/game-state')
-        .then(res => res.json())
-        .then(state => {
-            const player = state.players[playerId];
-            token.style.backgroundColor = player.color;
-            token.textContent = playerId + 1;
-        });
+    // 從 gameState 獲取玩家資料（不需要再次 fetch）
+    if (gameState && gameState.players && gameState.players[playerId]) {
+        const player = gameState.players[playerId];
+        token.style.backgroundColor = player.color;
+        token.textContent = playerId + 1;
+    }
 
     return token;
 }
@@ -316,14 +359,15 @@ async function buildHouse() {
     try {
         const response = await fetch('/api/build-house', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId })
         });
 
         const data = await response.json();
         
         if (data.success) {
             // 獲取玩家顏色
-            const stateResponse = await fetch('/api/game-state');
+            const stateResponse = await fetch(`/api/game-state?sessionId=${sessionId}`);
             const state = await stateResponse.json();
             const player = state.players[data.playerId];
             
@@ -400,7 +444,8 @@ async function nextPlayer() {
     try {
         const response = await fetch('/api/next-player', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId })
         });
 
         const data = await response.json();
@@ -426,7 +471,7 @@ async function nextPlayer() {
 // 檢查當前玩家是否需要跳過回合
 async function checkCurrentPlayerStatus() {
     try {
-        const response = await fetch('/api/game-state');
+        const response = await fetch(`/api/game-state?sessionId=${sessionId}`);
         const state = await response.json();
         const currentPlayer = state.players[state.currentPlayerIndex];
         
@@ -454,7 +499,8 @@ async function checkCurrentPlayerStatus() {
             // 清除休息標記（已經執行休息了）
             await fetch('/api/clear-skip', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionId })
             });
         } else {
             // 正常狀態，確保按鈕正確
@@ -470,7 +516,7 @@ async function checkCurrentPlayerStatus() {
 // 更新顯示
 function updateDisplay() {
     // 放置所有玩家在起點
-    fetch('/api/game-state')
+    fetch(`/api/game-state?sessionId=${sessionId}`)
         .then(res => res.json())
         .then(state => {
             state.players.forEach(player => {
@@ -485,7 +531,7 @@ function updateDisplay() {
 
 // 更新資訊面板
 function updateInfoPanel() {
-    fetch('/api/game-state')
+    fetch(`/api/game-state?sessionId=${sessionId}`)
         .then(res => res.json())
         .then(state => {
             const infoPanel = document.getElementById('info-panel');

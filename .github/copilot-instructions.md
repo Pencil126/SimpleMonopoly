@@ -36,3 +36,13 @@
 ✅ 響應式 UI 設計
 ✅ 即時遊戲狀態顯示
 
+## API 端點
+
+- `POST /api/create-session`：建立新會話，返回 sessionId
+- `POST /api/delete-session`：刪除會話（頁面關閉時自動調用）
+- `POST /api/init-game`：初始化遊戲，設定棋子數量（需 sessionId）
+- `POST /api/roll-dice`：擲骰子並移動棋子（需 sessionId）
+- `POST /api/build-house`：在目前格子蓋房子（需 sessionId）
+- `POST /api/next-player`：切換到下一位玩家（需 sessionId）
+- `POST /api/clear-skip`：清除休息狀態（需 sessionId）
+- `GET /api/game-state`：取得目前遊戲狀態（需 sessionId）
