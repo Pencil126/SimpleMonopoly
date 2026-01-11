@@ -1,7 +1,7 @@
 let gameState = null;
 const BOARD_SIZE = 16;
 
-// 格子說明（寫死在程式中）
+// 格子說明
 const cellLabels = {
     0: '起 / 終點',
     1: '臺灣節慶',
@@ -44,13 +44,11 @@ async function startGame() {
             document.getElementById('setup-panel').style.display = 'none';
             document.getElementById('game-main').style.display = 'flex';
             
-            // 確保按鈕狀態正確
-            document.getElementById('roll-btn').disabled = false;
-            document.getElementById('build-btn').disabled = true;
-            document.getElementById('next-btn').disabled = true;
-            
             createBoard();
             updateDisplay();
+            
+            // 檢查當前玩家是否需要跳過回合
+            checkCurrentPlayerStatus();
         }
     } catch (error) {
         console.error('初始化遊戲失敗:', error);
@@ -147,6 +145,24 @@ async function rollDice() {
         // 等待動畫完成後顯示結果
         setTimeout(() => {
             showDiceResult(data.dice1, data.total);
+            
+            // 立即顯示特殊格子訊息（如果有）
+            if (data.specialCell) {
+                let message = '';
+                let className = '';
+                if (data.specialCell === '休息一次') {
+                    message = '⚠️ 踩到「休息一次」，下一回合將跳過';
+                    className = 'skip';
+                } else if (data.specialCell === '再骰一次') {
+                    message = '🎉 踩到「再骰一次」，可以再擲一次';
+                    className = 'bonus';
+                }
+                
+                const specialMsg = document.createElement('div');
+                specialMsg.className = `special-message ${className}`;
+                specialMsg.textContent = message;
+                document.getElementById('dice-result').appendChild(specialMsg);
+            }
         }, 600);
 
         // 延遲更新玩家位置，等動畫完成
@@ -162,13 +178,22 @@ async function rollDice() {
         
         console.log('canBuildHouse:', data.canBuildHouse);
         
-        if (data.canBuildHouse) {
-            buildBtn.disabled = false;
-        } else {
+        // 如果可以再骰一次
+        if (data.canRollAgain) {
+            // 啟用擲骰子按鈕，禁用蓋房子和下一位玩家按鈕
+            rollBtn.disabled = false;
             buildBtn.disabled = true;
+            nextBtn.disabled = true;
+        } else {
+            // 正常情況
+            if (data.canBuildHouse) {
+                buildBtn.disabled = false;
+            } else {
+                buildBtn.disabled = true;
+            }
+            
+            nextBtn.disabled = false;
         }
-        
-        nextBtn.disabled = false;
         }, 700);
 
     } catch (error) {
@@ -383,20 +408,62 @@ async function nextPlayer() {
         // 更新目前玩家顯示
         document.getElementById('current-player').textContent = data.currentPlayer + 1;
         
-        // 清空骰子結果並重設按鈕狀態
+        // 清空骰子結果
         document.getElementById('dice-result').innerHTML = '';
-        document.getElementById('build-btn').disabled = true;
-        document.getElementById('next-btn').disabled = true;
-        
-        // 啟用擲骰子按鈕
-        document.getElementById('roll-btn').disabled = false;
 
         // 更新資訊面板
         updateInfoPanel();
+        
+        // 檢查當前玩家是否需要跳過回合（這會設定正確的按鈕狀態）
+        await checkCurrentPlayerStatus();
 
     } catch (error) {
         console.error('切換玩家失敗:', error);
         alert('切換玩家失敗，請重試');
+    }
+}
+
+// 檢查當前玩家是否需要跳過回合
+async function checkCurrentPlayerStatus() {
+    try {
+        const response = await fetch('/api/game-state');
+        const state = await response.json();
+        const currentPlayer = state.players[state.currentPlayerIndex];
+        
+        console.log('檢查玩家狀態:', {
+            playerId: currentPlayer.id,
+            position: currentPlayer.position,
+            skipNextTurn: currentPlayer.skipNextTurn
+        });
+        
+        if (currentPlayer.skipNextTurn) {
+            // 顯示跳過訊息
+            document.getElementById('dice-result').innerHTML = `
+                <div class="special-message skip">
+                    ⚠️ 本回合需要休息
+                </div>
+            `;
+            
+            // 禁用擲骰子和蓋房子按鈕
+            document.getElementById('roll-btn').disabled = true;
+            document.getElementById('build-btn').disabled = true;
+            
+            // 啟用下一位玩家按鈕
+            document.getElementById('next-btn').disabled = false;
+            
+            // 清除休息標記（已經執行休息了）
+            await fetch('/api/clear-skip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+        } else {
+            // 正常狀態，確保按鈕正確
+            document.getElementById('roll-btn').disabled = false;
+            document.getElementById('build-btn').disabled = true;
+            document.getElementById('next-btn').disabled = true;
+        }
+    } catch (error) {
+        console.error('檢查玩家狀態失敗:', error);
     }
 }
 

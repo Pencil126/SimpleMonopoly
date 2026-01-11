@@ -31,6 +31,7 @@ app.post('/api/init-game', (req, res) => {
             position: 0,
             visitedCells: [0],
             houses: {}, // 改為物件，格式為 { 位置: 房子數量 }
+            skipNextTurn: false, // 是否需要休息一次
             color: getPlayerColor(i)
         });
     }
@@ -51,22 +52,44 @@ app.post('/api/roll-dice', (req, res) => {
         return res.status(400).json({ error: '遊戲尚未開始' });
     }
 
+    const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+
     const dice1 = Math.floor(Math.random() * 6) + 1;
     const total = dice1;
 
-    const currentPlayer = gameState.players[gameState.currentPlayerIndex];
     const oldPosition = currentPlayer.position;
     const newPosition = (oldPosition + total) % gameState.boardSize;
 
     currentPlayer.position = newPosition;
 
-    // 檢查是否可以蓋房子（第一次踩上即可建房）
-    let canBuildHouse = true;
-
     // 記錄走過的格子
     if (!currentPlayer.visitedCells.includes(newPosition)) {
         currentPlayer.visitedCells.push(newPosition);
     }
+
+    // 檢查是否可以蓋房子（起點和休息格子不能蓋房子）
+    let canBuildHouse = true;
+    if (newPosition === 0 || newPosition === 4 || newPosition === 12) {
+        canBuildHouse = false;
+    }
+
+    // 檢查特殊格子
+    let specialCell = null;
+    let canRollAgain = false;
+    
+    // 休息一次：格子 4, 12
+    if (newPosition === 4 || newPosition === 12) {
+        currentPlayer.skipNextTurn = true;
+        specialCell = '休息一次';
+        console.log(`玩家 ${currentPlayer.id} 踩到格子 ${newPosition}，設置 skipNextTurn = true`);
+    }
+    // 再骰一次：格子 8
+    else if (newPosition === 8) {
+        canRollAgain = true;
+        specialCell = '再骰一次';
+    }
+
+    console.log(`擲骰後狀態: 玩家 ${currentPlayer.id}, 位置 ${newPosition}, skipNextTurn = ${currentPlayer.skipNextTurn}`);
 
     res.json({
         dice1,
@@ -75,8 +98,21 @@ app.post('/api/roll-dice', (req, res) => {
         oldPosition,
         newPosition,
         canBuildHouse,
+        canRollAgain,
+        specialCell,
         visitedCells: currentPlayer.visitedCells,
         houses: currentPlayer.houses
+    });
+});
+
+// 清除當前玩家的跳過狀態
+app.post('/api/clear-skip', (req, res) => {
+    const currentPlayer = gameState.players[gameState.currentPlayerIndex];
+    currentPlayer.skipNextTurn = false;
+    
+    res.json({
+        success: true,
+        playerId: currentPlayer.id
     });
 });
 
@@ -104,6 +140,7 @@ app.post('/api/build-house', (req, res) => {
 
 // 下一位玩家
 app.post('/api/next-player', (req, res) => {
+    // 切換到下一位玩家（不清除 skipNextTurn，讓它保留到下一輪）
     gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % gameState.players.length;
     
     res.json({
