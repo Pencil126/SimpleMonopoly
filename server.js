@@ -30,7 +30,7 @@ app.post('/api/init-game', (req, res) => {
             id: i,
             position: 0,
             visitedCells: [0],
-            houses: [],
+            houses: {}, // 改為物件，格式為 { 位置: 房子數量 }
             color: getPlayerColor(i)
         });
     }
@@ -60,12 +60,8 @@ app.post('/api/roll-dice', (req, res) => {
 
     currentPlayer.position = newPosition;
 
-    // 檢查是否可以蓋房子
-    let canBuildHouse = false;
-    if (currentPlayer.visitedCells.includes(newPosition) && 
-        !currentPlayer.houses.includes(newPosition)) {
-        canBuildHouse = true;
-    }
+    // 檢查是否可以蓋房子（第一次踩上即可建房）
+    let canBuildHouse = true;
 
     // 記錄走過的格子
     if (!currentPlayer.visitedCells.includes(newPosition)) {
@@ -89,20 +85,19 @@ app.post('/api/build-house', (req, res) => {
     const currentPlayer = gameState.players[gameState.currentPlayerIndex];
     const position = currentPlayer.position;
 
-    if (!currentPlayer.visitedCells.includes(position)) {
-        return res.status(400).json({ error: '此格子尚未走過' });
+    // 初始化該位置的房子數量
+    if (!currentPlayer.houses[position]) {
+        currentPlayer.houses[position] = 0;
     }
 
-    if (currentPlayer.houses.includes(position)) {
-        return res.status(400).json({ error: '此格子已有房子' });
-    }
-
-    currentPlayer.houses.push(position);
+    // 增加房子數量
+    currentPlayer.houses[position]++;
 
     res.json({
         success: true,
         playerId: currentPlayer.id,
         position,
+        houseCount: currentPlayer.houses[position],
         houses: currentPlayer.houses
     });
 });

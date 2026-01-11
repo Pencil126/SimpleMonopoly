@@ -293,12 +293,12 @@ h1 {
     bottom: 5px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 0.7em;
+    font-size: 0.85em;
     font-weight: bold;
     color: #333;
     background: rgba(255, 255, 255, 0.9);
     padding: 2px 8px;
-    border-radius: 4px;
+    border-radius: 25px;
     z-index: 1;
     max-width: 90%;
     overflow: hidden;
@@ -315,16 +315,6 @@ h1 {
 
 .cell.visited {
     position: relative;
-}
-
-/* 足跡標記 */
-.footprint {
-    position: absolute;
-    top: 3px;
-    right: 3px;
-    font-size: 1.1em;
-    opacity: 0.7;
-    z-index: 1;
 }
 
 .players-container {
@@ -352,9 +342,7 @@ h1 {
 
 .house {
     position: absolute;
-    top: 3px;
-    right: 3px;
-    font-size: 1.8em;
+    font-size: 1.5em;
     z-index: 2;
     filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.3));
 }

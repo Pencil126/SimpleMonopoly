@@ -3,22 +3,22 @@ const BOARD_SIZE = 16;
 
 // 格子說明（寫死在程式中）
 const cellLabels = {
-    0: 'GO 起點',
-    1: '台北',
-    2: '機會',
-    3: '台中',
-    4: '命運',
-    5: '高雄',
-    6: '社區',
-    7: '花蓮',
-    8: '監獄',
-    9: '宜蘭',
-    10: '寶箱',
-    11: '台南',
-    12: '休息',
-    13: '新竹',
-    14: '彩券',
-    15: '桃園'
+    0: '起 / 終點',
+    1: '臺灣節慶',
+    2: '',
+    3: '外國節慶',
+    4: '休息一次',
+    5: '',
+    6: '臺灣節慶',
+    7: '機會 / 命運',
+    8: '再骰一次',
+    9: '臺灣節慶',
+    10: '',
+    11: '外國節慶',
+    12: '休息一次',
+    13: '',
+    14: '外國節慶',
+    15: '機會 / 命運'
 };
 
 // 開始遊戲
@@ -43,6 +43,11 @@ async function startGame() {
             gameState = data;
             document.getElementById('setup-panel').style.display = 'none';
             document.getElementById('game-main').style.display = 'flex';
+            
+            // 確保按鈕狀態正確
+            document.getElementById('roll-btn').disabled = false;
+            document.getElementById('build-btn').disabled = true;
+            document.getElementById('next-btn').disabled = true;
             
             createBoard();
             updateDisplay();
@@ -154,6 +159,8 @@ async function rollDice() {
         // 更新按鈕狀態
         const buildBtn = document.getElementById('build-btn');
         const nextBtn = document.getElementById('next-btn');
+        
+        console.log('canBuildHouse:', data.canBuildHouse);
         
         if (data.canBuildHouse) {
             buildBtn.disabled = false;
@@ -274,27 +281,9 @@ function createPlayerToken(playerId) {
 }
 
 // 標記走過的格子
-async function markVisitedCell(position, playerId) {
+function markVisitedCell(position, playerId) {
     const cell = document.getElementById(`cell-${position}`);
     cell.classList.add('visited', 'player-visited');
-    
-    // 獲取玩家顏色
-    const response = await fetch('/api/game-state');
-    const state = await response.json();
-    const player = state.players[playerId];
-    
-    // 設定邊框顏色
-    cell.style.borderColor = player.color;
-    
-    // 添加足跡標記（如果還沒有）
-    if (!cell.querySelector('.footprint')) {
-        const footprint = document.createElement('div');
-        footprint.className = 'footprint';
-        footprint.innerHTML = '👣';
-        footprint.style.color = player.color;
-        footprint.title = `玩家 ${playerId + 1} 的足跡`;
-        cell.appendChild(footprint);
-    }
 }
 
 // 蓋房子
@@ -313,40 +302,72 @@ async function buildHouse() {
             const state = await stateResponse.json();
             const player = state.players[data.playerId];
             
-            // 在格子上顯示房子
-            const cell = document.getElementById(`cell-${data.position}`);
-            const house = document.createElement('div');
-            house.className = 'house';
-            house.innerHTML = '🏠';
-            house.style.filter = `drop-shadow(0 0 3px ${player.color})`;
-            house.title = `玩家 ${data.playerId + 1} 的房子`;
-            
-            // 添加玩家顏色的光暈效果
-            const colorBadge = document.createElement('div');
-            colorBadge.style.cssText = `
-                position: absolute;
-                top: 0;
-                right: 0;
-                width: 25px;
-                height: 25px;
-                background: ${player.color};
-                border-radius: 50%;
-                opacity: 0.6;
-                z-index: 1;
-            `;
-            cell.appendChild(colorBadge);
-            cell.appendChild(house);
+            // 更新格子上的房子顯示
+            updateHouseDisplay(data.position, data.playerId, data.houseCount, player.color);
 
-            alert(`玩家 ${data.playerId + 1} 在格子 ${data.position} 蓋了房子！`);
+            alert(`玩家 ${data.playerId + 1} 在格子 ${data.position} 蓋了第 ${data.houseCount} 棟房子！`);
             
-            // 禁用蓋房子按鈕
+            // 禁用蓋房子按鈕（限制每回合只能蓋一座房子）
             const buildBtn = document.getElementById('build-btn');
             if (buildBtn) buildBtn.disabled = true;
+            
+            // 更新資訊面板
+            updateInfoPanel();
         }
     } catch (error) {
         console.error('蓋房子失敗:', error);
         alert('蓋房子失敗，請重試');
     }
+}
+
+// 更新房子顯示
+function updateHouseDisplay(position, playerId, houseCount, playerColor) {
+    const cell = document.getElementById(`cell-${position}`);
+    
+    // 移除該玩家舊的房子顯示（如果有）
+    const oldHouse = cell.querySelector(`.house-player-${playerId}`);
+    if (oldHouse) {
+        oldHouse.remove();
+    }
+    
+    // 建立新的房子顯示
+    const house = document.createElement('div');
+    house.className = `house house-player-${playerId}`;
+    house.innerHTML = '🏠';
+    house.style.filter = `drop-shadow(0 0 3px ${playerColor})`;
+    house.title = `玩家 ${playerId + 1} 的房子 x${houseCount}`;
+    house.dataset.playerId = playerId;
+    house.dataset.count = houseCount;
+    
+    // 根據玩家ID設定位置，讓房子從右上角排列
+    const houseOffset = playerId * 30; // 每個玩家偏移30px
+    house.style.top = `${3 + Math.floor(playerId / 2) * 25}px`;
+    house.style.right = `${3 + (playerId % 2) * 30}px`;
+    
+    // 顯示房子數量
+    const countBadge = document.createElement('span');
+    countBadge.className = 'house-count';
+    countBadge.textContent = houseCount;
+    countBadge.style.cssText = `
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        background: ${playerColor};
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.6em;
+        font-weight: bold;
+        border: 2px solid white;
+        z-index: 3;
+    `;
+    house.appendChild(countBadge);
+    
+    cell.appendChild(house);
 }
 
 // 下一位玩家
@@ -421,8 +442,7 @@ function updateInfoPanel() {
                         ${index === state.currentPlayerIndex ? '(目前玩家)' : ''}
                     </h3>
                     <div class="stat-item">📍 目前位置：格子 ${player.position}</div>
-                    <div class="stat-item">👣 走過格子數：${player.visitedCells.length}</div>
-                    <div class="stat-item">🏠 房子數量：${player.houses.length}</div>
+                    <div class="stat-item">🏠 房子總數：${Object.values(player.houses).reduce((sum, count) => sum + count, 0)}</div>
                 `;
 
                 infoPanel.appendChild(playerInfo);
