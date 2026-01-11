@@ -52,8 +52,7 @@ app.post('/api/roll-dice', (req, res) => {
     }
 
     const dice1 = Math.floor(Math.random() * 6) + 1;
-    const dice2 = Math.floor(Math.random() * 6) + 1;
-    const total = dice1 + dice2;
+    const total = dice1;
 
     const currentPlayer = gameState.players[gameState.currentPlayerIndex];
     const oldPosition = currentPlayer.position;
@@ -75,7 +74,6 @@ app.post('/api/roll-dice', (req, res) => {
 
     res.json({
         dice1,
-        dice2,
         total,
         playerId: currentPlayer.id,
         oldPosition,

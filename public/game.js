@@ -141,7 +141,7 @@ async function rollDice() {
         
         // 等待動畫完成後顯示結果
         setTimeout(() => {
-            showDiceResult(data.dice1, data.dice2, data.total);
+            showDiceResult(data.dice1, data.total);
         }, 600);
 
         // 延遲更新玩家位置，等動畫完成
@@ -183,20 +183,16 @@ function showDiceRolling() {
     diceResult.innerHTML = `
         <div class="dice-container">
             <div class="dice rolling" id="dice1"></div>
-            <div class="dice rolling" id="dice2"></div>
         </div>
     `;
     
     // 隨機顯示點數（動畫效果）
     const dice1 = document.getElementById('dice1');
-    const dice2 = document.getElementById('dice2');
     
     let count = 0;
     const interval = setInterval(() => {
         const random1 = Math.floor(Math.random() * 6) + 1;
-        const random2 = Math.floor(Math.random() * 6) + 1;
         renderDice(dice1, random1);
-        renderDice(dice2, random2);
         count++;
         if (count >= 6) {
             clearInterval(interval);
@@ -205,23 +201,20 @@ function showDiceRolling() {
 }
 
 // 顯示骰子結果
-function showDiceResult(dice1Value, dice2Value, total) {
+function showDiceResult(dice1Value, total) {
     const diceResult = document.getElementById('dice-result');
     diceResult.innerHTML = `
         <div class="dice-container">
             <div class="dice" id="dice1-final"></div>
-            <div class="dice" id="dice2-final"></div>
         </div>
         <div class="dice-result-text">
-            🎲 點數：${dice1Value} + ${dice2Value} = ${total}
+            🎲 點數：${dice1Value}
         </div>
     `;
     
     const dice1 = document.getElementById('dice1-final');
-    const dice2 = document.getElementById('dice2-final');
     
     renderDice(dice1, dice1Value);
-    renderDice(dice2, dice2Value);
 }
 
 // 渲染骰子點數
