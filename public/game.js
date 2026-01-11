@@ -151,23 +151,17 @@ async function rollDice() {
         // 標記走過的格子
         markVisitedCell(data.newPosition, data.playerId);
 
-        // 顯示蓋房子按鈕
-        const actionPanel = document.getElementById('action-panel');
-        actionPanel.innerHTML = '';
-
+        // 更新按鈕狀態
+        const buildBtn = document.getElementById('build-btn');
+        const nextBtn = document.getElementById('next-btn');
+        
         if (data.canBuildHouse) {
-            const buildBtn = document.createElement('button');
-            buildBtn.textContent = '🏠 蓋房子';
-            buildBtn.className = 'btn btn-success';
-            buildBtn.onclick = buildHouse;
-            actionPanel.appendChild(buildBtn);
+            buildBtn.disabled = false;
+        } else {
+            buildBtn.disabled = true;
         }
-
-            const nextBtn = document.createElement('button');
-            nextBtn.textContent = '下一位玩家';
-            nextBtn.className = 'btn btn-secondary';
-            nextBtn.onclick = nextPlayer;
-            actionPanel.appendChild(nextBtn);
+        
+        nextBtn.disabled = false;
         }, 700);
 
     } catch (error) {
@@ -345,9 +339,9 @@ async function buildHouse() {
 
             alert(`玩家 ${data.playerId + 1} 在格子 ${data.position} 蓋了房子！`);
             
-            // 移除蓋房子按鈕
-            const successBtn = document.getElementById('action-panel').querySelector('.btn-success');
-            if (successBtn) successBtn.remove();
+            // 禁用蓋房子按鈕
+            const buildBtn = document.getElementById('build-btn');
+            if (buildBtn) buildBtn.disabled = true;
         }
     } catch (error) {
         console.error('蓋房子失敗:', error);
@@ -368,9 +362,10 @@ async function nextPlayer() {
         // 更新目前玩家顯示
         document.getElementById('current-player').textContent = data.currentPlayer + 1;
         
-        // 清空動作面板和骰子結果
-        document.getElementById('action-panel').innerHTML = '';
+        // 清空骰子結果並重設按鈕狀態
         document.getElementById('dice-result').innerHTML = '';
+        document.getElementById('build-btn').disabled = true;
+        document.getElementById('next-btn').disabled = true;
         
         // 啟用擲骰子按鈕
         document.getElementById('roll-btn').disabled = false;
@@ -406,6 +401,7 @@ function updateInfoPanel() {
         .then(res => res.json())
         .then(state => {
             const infoPanel = document.getElementById('info-panel');
+            infoPanel.style.display = 'block';
             infoPanel.innerHTML = '<h3>玩家資訊</h3>';
 
             state.players.forEach((player, index) => {

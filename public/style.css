@@ -25,7 +25,8 @@ h1 {
 }
 
 .panel {
-    background: white;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
     border-radius: 15px;
     padding: 25px;
     margin-bottom: 20px;
@@ -45,8 +46,12 @@ h1 {
     margin-bottom: 0;
     position: sticky;
     top: 20px;
-    max-height: calc(100vh - 40px);
+    height: auto;
     overflow-y: auto;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
 }
 
 .setup-controls {
@@ -74,7 +79,7 @@ h1 {
     padding: 12px 30px;
     font-size: 1.1em;
     border: none;
-    border-radius: 8px;
+    border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-weight: bold;
@@ -117,6 +122,10 @@ h1 {
 
 .game-info {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
 }
 
 .game-info h2 {
@@ -138,12 +147,14 @@ h1 {
     font-size: 1.5em;
     font-weight: bold;
     color: #333;
-    min-height: 120px;
+    min-height: 180px;
+    height: 180px;
     display: flex;
     gap: 20px;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
+    flex-direction: column;
 }
 
 /* 骰子容器 */
@@ -226,6 +237,9 @@ h1 {
     gap: 15px;
     justify-content: center;
     flex-wrap: wrap;
+    min-height: 80px;
+    height: 80px;
+    align-items: center;
 }
 
 /* 棋盤樣式 */
@@ -354,7 +368,8 @@ h1 {
 
 /* 資訊面板 */
 .info-panel {
-    background: white;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
     border-radius: 15px;
     padding: 20px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
