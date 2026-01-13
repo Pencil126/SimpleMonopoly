@@ -103,7 +103,13 @@ async function startGame() {
 // 建立棋盤 - 四邊框式佈局
 function createBoard() {
     const board = document.getElementById('board');
+    
+    // 保留中間的圖片區域，只移除格子
+    const centerImage = board.querySelector('.board-center');
     board.innerHTML = '';
+    if (centerImage) {
+        board.appendChild(centerImage);
+    }
 
     // 建立16個格子（四邊框）
     for (let i = 0; i < BOARD_SIZE; i++) {
@@ -143,11 +149,13 @@ function createBoard() {
         board.appendChild(cell);
     }
 
-    // 建立中間主視覺區域
-    const centerArea = document.createElement('div');
-    centerArea.className = 'center-area';
-    centerArea.innerHTML = '🎲<br>大富翁';
-    board.appendChild(centerArea);
+    // 如果沒有圖片區域，則建立舊的文字區域作為備用
+    if (!centerImage) {
+        const centerArea = document.createElement('div');
+        centerArea.className = 'center-area';
+        centerArea.innerHTML = '🎲<br>大富翁';
+        board.appendChild(centerArea);
+    }
 }
 
 // 取得格子在網格中的位置（16格，每邊4格）

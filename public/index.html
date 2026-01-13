@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>簡易大富翁遊戲</title>
+    <link rel="icon" href="/images/icon.ico">
+    <meta name="description" content="簡易大富翁線上遊戲，擁有擲骰子、蓋房子等經典功能">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -38,7 +40,17 @@
             </div>
 
             <!-- 右側：棋盤 -->
-            <div id="board" class="board"></div>
+            <div class="board-container">
+                <div id="board" class="board">
+                    <!-- 棋盤中間的圖片區域 -->
+                    <div class="board-center">
+                        <div class="center-image-container">
+                            <img id="center-image" src="/images/節慶大富翁.png" alt="遊戲中心圖片">
+                            <p class="center-caption">歡迎來到大富翁世界！</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 遊戲資訊 -->
